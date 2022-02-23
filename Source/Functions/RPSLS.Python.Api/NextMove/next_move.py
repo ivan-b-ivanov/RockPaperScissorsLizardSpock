@@ -6,7 +6,6 @@ from typing import Tuple, List
 
 import requests
 
-
 def predict(player_name: str) -> str:
     next_move = _predict_next_move(*_get_player_games(player_name))
     return _convert_game_to_json(next_move)
