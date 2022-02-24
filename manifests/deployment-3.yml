@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "rpslsaksxadhwu2esge7a-a09a"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "rpslsaksxadhwu2esge7a-a09a"
+  template:
+    metadata:
+      labels:
+        app: "rpslsaksxadhwu2esge7a-a09a"
+    spec:
+      containers:
+        - name: "rpslsaksxadhwu2esge7a-a09a"
+          image: "rpslsacrxadhwu2esge7a.azurecr.io/rpslsaksxadhwu2esge7a"
+          ports:
+          - containerPort: 80
