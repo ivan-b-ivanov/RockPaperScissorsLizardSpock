@@ -1,0 +1,51 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: rpslsacrxadhwu2esge7a.azurecr.io
+        username: ${{ secrets.acr_rpslsacrxadhwu2esge7a_username }}
+        password: ${{ secrets.acr_rpslsacrxadhwu2esge7a_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/.devcontainer" -f  ".devcontainer/Dockerfile" -t rpslsacrxadhwu2esge7a.azurecr.io/rpslsaksxadhwu2esge7a:${{ github.sha }} --label dockerfile-path=.devcontainer/Dockerfile
+        docker push rpslsacrxadhwu2esge7a.azurecr.io/rpslsaksxadhwu2esge7a:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_rpslsaksxadhwu2esge7a_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep kv | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace kv`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: kv
+        container-registry-url: rpslsacrxadhwu2esge7a.azurecr.io
+        container-registry-username: ${{ secrets.acr_rpslsacrxadhwu2esge7a_username }}
+        container-registry-password: ${{ secrets.acr_rpslsacrxadhwu2esge7a_password }}
+        secret-name: rpslsaksxadhdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: kv
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+          manifests/ingress.yml
+        images: |
+          rpslsacrxadhwu2esge7a.azurecr.io/rpslsaksxadhwu2esge7a:${{ github.sha }}
+        imagepullsecrets: |
+          rpslsaksxadhdockerauth
